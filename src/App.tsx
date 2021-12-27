@@ -1,5 +1,5 @@
-import { VStack } from '@chakra-ui/react';
 import * as React from 'react';
+import { VStack } from '@chakra-ui/react';
 import { Logo } from './components/logo';
 import { Calculator } from './pages/calculator';
 
