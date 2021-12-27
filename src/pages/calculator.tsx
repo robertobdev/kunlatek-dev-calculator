@@ -14,25 +14,27 @@ import { formatPrice } from '../utils/format-price';
 interface CalculateGrossValues {
   _kunlatek: number;
   _devGross: number;
-  _iss: number;
+  _inss: number;
   _net: number;
+  _issPisCofins: number;
 }
 
 export const Calculator = () => {
   const [totalGrossValue, setTotalGrossValue] = React.useState('');
   const [kunlatek, setKunlatek] = React.useState(0);
   const [devGross, setDevGross] = React.useState(0);
-  const [iss, setIss] = React.useState(0);
+  const [inss, setInss] = React.useState(0);
+  const [issPisCofins, setIssPisCofins] = React.useState(0);
   const [net, setNet] = React.useState(0);
 
   const handleGrossValue = (value: string) => {
     setTotalGrossValue(value);
-    const { _kunlatek, _devGross, _iss, _net } = calculateGrossValue(
-      Number(value)
-    );
+    const { _kunlatek, _devGross, _issPisCofins, _inss, _net } =
+      calculateGrossValue(Number(value));
     setKunlatek(_kunlatek * -1);
     setDevGross(_devGross);
-    setIss(_iss * -1);
+    setInss(_inss * -1);
+    setIssPisCofins(_issPisCofins * -1);
     setNet(_net);
   };
 
@@ -43,7 +45,8 @@ export const Calculator = () => {
     return {
       _kunlatek,
       _devGross,
-      _iss: _devGross * 0.2,
+      _issPisCofins: value - _totalGrossValue,
+      _inss: _devGross * 0.2,
       _net: _devGross * 0.8,
     };
   };
@@ -89,31 +92,41 @@ export const Calculator = () => {
             />
           </InputGroup>
         </OrderSummaryItem>
-        <OrderSummaryItem label="Bruto do dev" value={formatPrice(devGross)} />
+        <OrderSummaryItem
+          label={
+            <TooltipItem
+              label="Imposto(ISS+PIS+COFINS)"
+              tooltipLabel="ISS + PIS + COFINS incide sob o valor bruto e é fixado em 5,65%"
+            />
+          }
+          isNegativeValue={true}
+          value={formatPrice(issPisCofins)}
+        />
         <OrderSummaryItem
           label={
             <TooltipItem
               label="Kunlatek"
-              tooltipLabel="Kunlatek incide sob o valor bruto e é fixado em 25%"
+              tooltipLabel="Kunlatek incide sob o valor bruto - Impostos(Iss PIS e COFINS) e é fixado em 25%"
             />
           }
           isNegativeValue={true}
           value={formatPrice(kunlatek)}
         />
+        <OrderSummaryItem label="Bruto do dev" value={formatPrice(devGross)} />
         <OrderSummaryItem
           label={
             <TooltipItem
-              label="ISS"
-              tooltipLabel="ISS incide sob o valor bruto do dev  e é fixado em 20%"
+              label="Imposto(INSS)"
+              tooltipLabel="INSS incide sob o valor bruto do dev e é fixado em 20%"
             />
           }
           isNegativeValue={true}
-          value={formatPrice(iss)}
+          value={formatPrice(inss)}
         />
 
         <Flex justify="space-between">
           <Text fontSize="lg" color="#FFFFFF" fontWeight="semibold">
-            Total
+            Valor líquido
           </Text>
           <Text fontSize="xl" color="#FFFFFF" fontWeight="extrabold">
             {formatPrice(net)}
