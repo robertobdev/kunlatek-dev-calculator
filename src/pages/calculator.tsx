@@ -75,7 +75,14 @@ export const Calculator = () => {
       </Heading>
 
       <Stack spacing="6">
-        <OrderSummaryItem label="Valor Bruto">
+        <OrderSummaryItem
+          label={
+            <TooltipItem
+              label="Valor bruto"
+              tooltipLabel="Valor da hora base: Junior R$50; Pleno R$60; Senior R$80;"
+            />
+          }
+        >
           <InputGroup width={150}>
             <InputLeftElement
               pointerEvents="none"
