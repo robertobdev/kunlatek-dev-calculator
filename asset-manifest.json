@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/kunlatek-dev-calculator/static/css/main.e1b6dd4b.css",
-    "main.js": "/kunlatek-dev-calculator/static/js/main.7a0a9f90.js",
+    "main.js": "/kunlatek-dev-calculator/static/js/main.4c3fbc47.js",
     "static/js/787.51fb0892.chunk.js": "/kunlatek-dev-calculator/static/js/787.51fb0892.chunk.js",
     "index.html": "/kunlatek-dev-calculator/index.html",
     "main.e1b6dd4b.css.map": "/kunlatek-dev-calculator/static/css/main.e1b6dd4b.css.map",
-    "main.7a0a9f90.js.map": "/kunlatek-dev-calculator/static/js/main.7a0a9f90.js.map",
+    "main.4c3fbc47.js.map": "/kunlatek-dev-calculator/static/js/main.4c3fbc47.js.map",
     "787.51fb0892.chunk.js.map": "/kunlatek-dev-calculator/static/js/787.51fb0892.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.e1b6dd4b.css",
-    "static/js/main.7a0a9f90.js"
+    "static/js/main.4c3fbc47.js"
   ]
 }
