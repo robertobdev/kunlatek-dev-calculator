@@ -26,6 +26,7 @@ export const Calculator = () => {
   const [inss, setInss] = React.useState(0);
   const [issPisCofins, setIssPisCofins] = React.useState(0);
   const [net, setNet] = React.useState(0);
+  const KunlatekFee = 0.20;
 
   const handleGrossValue = (value: string) => {
     setTotalGrossValue(value);
@@ -40,7 +41,7 @@ export const Calculator = () => {
 
   const calculateGrossValue = (value: number): CalculateGrossValues => {
     const _totalGrossValue = value * (1 - 0.0565);
-    const _kunlatek = _totalGrossValue * 0.20;
+    const _kunlatek = _totalGrossValue * KunlatekFee;
     const _devGross = _totalGrossValue * 0.75;
     return {
       _kunlatek,
@@ -113,7 +114,7 @@ export const Calculator = () => {
           label={
             <TooltipItem
               label="Kunlatek"
-              tooltipLabel="Kunlatek incide sob o valor bruto - Impostos(Iss PIS e COFINS) e é fixado em 25%"
+              tooltipLabel={'Kunlatek incide sob o valor bruto - Impostos(Iss PIS e COFINS) e é fixado em' + KunlatekFee*100 + '%'}
             />
           }
           isNegativeValue={true}
