@@ -40,7 +40,7 @@ export const Calculator = () => {
 
   const calculateGrossValue = (value: number): CalculateGrossValues => {
     const _totalGrossValue = value * (1 - 0.0565);
-    const _kunlatek = _totalGrossValue * 0.25;
+    const _kunlatek = _totalGrossValue * 0.20;
     const _devGross = _totalGrossValue * 0.75;
     return {
       _kunlatek,
