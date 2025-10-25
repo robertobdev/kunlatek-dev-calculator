@@ -13,10 +13,12 @@ export const OrderSummaryItem = (props: OrderSummaryItemProps) => {
   const { label, value, children, isNegativeValue, checkbox } = props;
   return (
     <Flex justify="space-between" alignItems="center" fontSize="sm">
-      <Text fontWeight="medium" color="#FFFFFF" display="flex" alignItems="center" gap={2}>
-        {label}
+      <Flex alignItems="center" gaps={2}>
+        <Text fontWeight="medium" color="#FFFFFF">
+          {label}
+        </Text>
         {checkbox}
-      </Text>
+      </Flex>
       {value ? (
         <Text
           fontWeight="medium"

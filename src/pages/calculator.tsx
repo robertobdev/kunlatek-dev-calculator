@@ -1,60 +1,152 @@
 import {
+  Checkbox,
   Flex,
   Heading,
   Input,
   InputGroup,
   InputLeftElement,
   Stack,
-  Text,
+  Text
 } from '@chakra-ui/react';
 import * as React from 'react';
 import { OrderSummaryItem } from '../components/order-sumarry-item';
 import { TooltipItem } from '../components/tooltip-item';
 import { formatPrice } from '../utils/format-price';
-interface CalculateGrossValues {
-  _kunlatek: number;
-  _devGross: number;
-  _inss: number;
-  _net: number;
-  _issPisCofins: number;
+
+// Constants
+const TETO_INSS = 8157.41;
+const TETO_INSS_FEE = 951.62;
+const KUNLATEK_FEE = 0.05;
+const GOVERNMENT_FEE = 0.0565;
+const INSS_RATE = 0.2;
+
+// Types
+interface CalculationResult {
+  kunlatek: number;
+  devGross: number;
+  inss: number;
+  net: number;
+  issPisCofins: number;
 }
 
+interface CalculatorState {
+  totalGrossValue: string;
+  kunlatek: number;
+  devGross: number;
+  inss: number;
+  issPisCofins: number;
+  net: number;
+  isInsseilingCeiling: boolean;
+}
+
+// Pure calculation functions
+const calculateInssLimit = (): number => TETO_INSS * INSS_RATE;
+
+const calculateGrossValue = (value: number, useCeiling?: boolean): CalculationResult => {
+  const totalGrossValue = value * (1 - GOVERNMENT_FEE);
+  const kunlatek = totalGrossValue * KUNLATEK_FEE;
+  const devGross = totalGrossValue - kunlatek;
+  const inssRaw = devGross * INSS_RATE;
+  const inssLimit = calculateInssLimit();
+
+  let inss = inssRaw < inssLimit ? inssRaw : inssLimit;
+
+  if (useCeiling) {
+    const ceilingInssValueFromKunlatek = inssLimit - TETO_INSS_FEE;
+    if (inss > ceilingInssValueFromKunlatek) {
+      inss = ceilingInssValueFromKunlatek;
+    }
+  }
+
+  const net = devGross - inss;
+  const issPisCofins = value - totalGrossValue;
+
+  return {
+    kunlatek,
+    devGross,
+    inss,
+    net,
+    issPisCofins,
+  };
+};
+
 export const Calculator = () => {
-  const [totalGrossValue, setTotalGrossValue] = React.useState('');
-  const [kunlatek, setKunlatek] = React.useState(0);
-  const [devGross, setDevGross] = React.useState(0);
-  const [inss, setInss] = React.useState(0);
-  const [issPisCofins, setIssPisCofins] = React.useState(0);
-  const [net, setNet] = React.useState(0);
-  const KunlatekFee = 0.05;
-  const GovermentFee = 0.0565;
-  const InssLimit = 1400
+  const [state, setState] = React.useState<CalculatorState>({
+    totalGrossValue: '',
+    kunlatek: 0,
+    devGross: 0,
+    inss: 0,
+    issPisCofins: 0,
+    net: 0,
+    isInsseilingCeiling: false,
+  });
 
-  const handleGrossValue = (value: string) => {
-    setTotalGrossValue(value);
-    const { _kunlatek, _devGross, _issPisCofins, _inss, _net } =
-      calculateGrossValue(Number(value));
-    setKunlatek(_kunlatek * -1);
-    setDevGross(_devGross);
-    setInss(_inss * -1);
-    setIssPisCofins(_issPisCofins * -1);
-    setNet(_net);
+  // Event handlers
+  const handleGrossValueChange = (value: string) => {
+    // Limita a 8 dígitos
+    if (value.length > 8) {
+      return;
+    }
+
+    // Se o valor estiver vazio, apenas atualiza o estado sem fazer cálculos
+    if (value === '') {
+      setState(prevState => ({
+        ...prevState,
+        totalGrossValue: value,
+        kunlatek: 0,
+        devGross: 0,
+        issPisCofins: 0,
+        inss: 0,
+        net: 0,
+      }));
+      return;
+    }
+
+    const numericValue = Number(value);
+    // Se o valor não for um número válido, não faz nada
+    if (isNaN(numericValue) || numericValue < 0) {
+      return;
+    }
+
+    const useCeiling = state.isInsseilingCeiling;
+    const calculation = calculateGrossValue(numericValue, useCeiling);
+
+    setState(prevState => ({
+      ...prevState,
+      totalGrossValue: value,
+      kunlatek: calculation.kunlatek * -1,
+      devGross: calculation.devGross,
+      issPisCofins: calculation.issPisCofins * -1,
+      inss: calculation.inss * -1,
+      net: calculation.net,
+    }));
   };
 
-  const calculateGrossValue = (value: number): CalculateGrossValues => {
-    const _totalGrossValue = value * (1 - GovermentFee);
-    const _kunlatek = _totalGrossValue * KunlatekFee;
-    const _devGross = _totalGrossValue - _kunlatek;
-    const _inssRaw = _devGross * 0.2
-    const _inss = _inssRaw < InssLimit ? _inssRaw : InssLimit;
-    return {
-      _kunlatek,
-      _devGross,
-      _issPisCofins: value - _totalGrossValue,
-      _inss,
-      _net: _devGross - _inss,
-    };
+  const handleCeilingToggle = () => {
+    const newCeilingValue = !state.isInsseilingCeiling;
+
+    // Se não há valor válido, apenas atualiza o estado do checkbox
+    if (state.totalGrossValue === '' || isNaN(Number(state.totalGrossValue))) {
+      setState(prevState => ({
+        ...prevState,
+        isInsseilingCeiling: newCeilingValue,
+      }));
+      return;
+    }
+
+    const calculation = calculateGrossValue(Number(state.totalGrossValue), newCeilingValue);
+
+    setState(prevState => ({
+      ...prevState,
+      isInsseilingCeiling: newCeilingValue,
+      kunlatek: calculation.kunlatek * -1,
+      devGross: calculation.devGross,
+      issPisCofins: calculation.issPisCofins * -1,
+      inss: calculation.inss * -1,
+      net: calculation.net,
+    }));
   };
+
 
   return (
     <Stack
@@ -71,9 +163,9 @@ export const Calculator = () => {
         color="#5ED7F2"
         size="md"
         css={{
-          background: '-webkit-linear-gradient(135.51deg,#30a1fc,#6ae1ec)',
-          '-webkit-background-clip': 'text',
-          '-webkit-text-fill-color': 'transparent',
+          background: 'linear-gradient(135.51deg,#30a1fc,#6ae1ec)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
         }}
       >
         CALCULADORA DEV - KUNLATEK
@@ -99,41 +191,56 @@ export const Calculator = () => {
               color="#FFFFFF"
               placeholder="Valor bruto"
               type="number"
-              value={totalGrossValue}
-              onChange={({ target }) => handleGrossValue(target.value)}
+              maxLength={8}
+              value={state.totalGrossValue}
+              onChange={({ target }) => handleGrossValueChange(target.value)}
             />
           </InputGroup>
         </OrderSummaryItem>
+
         <OrderSummaryItem
           label={
             <TooltipItem
               label="Imposto(ISS+PIS+COFINS)"
-              tooltipLabel="ISS + PIS + COFINS incide sob o valor bruto e é fixado em 5,65%"
+              tooltipLabel={`ISS + PIS + COFINS incide sob o valor bruto e é fixado em ${GOVERNMENT_FEE * 100}%`}
             />
           }
           isNegativeValue={true}
-          value={formatPrice(issPisCofins)}
+          value={formatPrice(state.issPisCofins)}
         />
+
         <OrderSummaryItem
           label={
             <TooltipItem
               label="Kunlatek"
-              tooltipLabel={'Kunlatek incide sob o valor bruto - Impostos(Iss PIS e COFINS) e é fixado em ' + KunlatekFee*100 + '%'}
+              tooltipLabel={`Kunlatek incide sob o valor bruto - Impostos(Iss PIS e COFINS) e é fixado em ${KUNLATEK_FEE * 100}%`}
             />
           }
           isNegativeValue={true}
-          value={formatPrice(kunlatek)}
+          value={formatPrice(state.kunlatek)}
         />
-        <OrderSummaryItem label="Bruto do dev" value={formatPrice(devGross)} />
+
+        <OrderSummaryItem
+          label="Bruto do dev"
+          value={formatPrice(state.devGross)}
+        />
+
         <OrderSummaryItem
           label={
             <TooltipItem
               label="Imposto(INSS)"
-              tooltipLabel="INSS incide sob o valor bruto do dev e é fixado em 20% com teto de R$ 1400,00"
+              tooltipLabel={`INSS incide sob o valor bruto do dev e é fixado em ${INSS_RATE * 100}% com teto de ${formatPrice(calculateInssLimit())}`}
             />
           }
           isNegativeValue={true}
-          value={formatPrice(inss)}
+          value={formatPrice(state.inss)}
+          checkbox={
+            <Checkbox
+              title="Já paga o teto?"
+              isChecked={state.isInsseilingCeiling}
+              onChange={handleCeilingToggle}
+            />
+          }
         />
 
         <Flex justify="space-between">
@@ -141,7 +248,7 @@ export const Calculator = () => {
             Valor líquido
           </Text>
           <Text fontSize="xl" color="#FFFFFF" fontWeight="extrabold">
-            {formatPrice(net)}
+            {formatPrice(state.net)}
           </Text>
         </Flex>
       </Stack>
