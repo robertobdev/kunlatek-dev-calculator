@@ -6,14 +6,16 @@ type OrderSummaryItemProps = {
   value?: string;
   children?: React.ReactNode;
   isNegativeValue?: boolean;
+  checkbox?: React.ReactNode;
 };
 
 export const OrderSummaryItem = (props: OrderSummaryItemProps) => {
-  const { label, value, children, isNegativeValue } = props;
+  const { label, value, children, isNegativeValue, checkbox } = props;
   return (
     <Flex justify="space-between" alignItems="center" fontSize="sm">
-      <Text fontWeight="medium" color="#FFFFFF">
+      <Text fontWeight="medium" color="#FFFFFF" display="flex" alignItems="center" gap={2}>
         {label}
+        {checkbox}
       </Text>
       {value ? (
         <Text
